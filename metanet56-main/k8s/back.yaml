@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: on-back
+  labels:
+    app: on-back
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: on-back
+  template:
+    metadata:
+      labels:
+        app: on-back
+    spec:
+      containers:
+      - name: back
+        image: 10.10.10.156:5000/app-k8s:8bc18630
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /health.php   # PHP 상태 체크
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: /health.php   # PHP 상태 체크
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: on-back-svc
+spec:
+  type: ClusterIP
+  clusterIP: 10.96.0.20
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: on-back

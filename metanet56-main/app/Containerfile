@@ -1,0 +1,25 @@
+# PHP가 포함된 Apache 공식 이미지 사용
+FROM php:8.1-apache
+
+# Apache 문서 루트를 맞춤 경로로 변경
+WORKDIR /var/www/html
+
+# 현재 디렉토리의 모든 파일을 컨테이너 내부로 복사
+COPY . /var/www/html/
+
+# 필요한 PHP 확장 프로그램 설치 (mysqli 포함)
+RUN docker-php-ext-install mysqli
+
+# Apache 및 PHP 설정 최적화
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
+    a2enmod rewrite
+
+# Apache가 8080 포트에서 동작하도록 설정 변경
+RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf && \
+    sed -i 's/:80>/:8080>/' /etc/apache2/sites-enabled/000-default.conf
+
+# 컨테이너가 실행될 때 Apache를 포그라운드에서 실행
+CMD ["apache2-foreground"]
+
+# HTTP 포트 열기
+EXPOSE 8080
